@@ -1,0 +1,8 @@
+services:
+  go-app:
+    image: ubuntu:20.04
+    volumes:
+      - ../bin:/app
+    command: /bin/bash -c "while true; do sleep 1000; done"
+    stdin_open: true
+    tty: true
