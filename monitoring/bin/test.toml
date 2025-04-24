@@ -1,0 +1,10 @@
+[app]
+type="main"
+system="linux"
+
+[logger]
+level="DEBUG"
+
+[grpc]
+host=""
+port="50051"

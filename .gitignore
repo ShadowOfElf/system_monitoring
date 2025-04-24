@@ -26,4 +26,4 @@ ehthumbs.db
 Thumbs.db
 .vscode/
 *.bak
-bin/system_monitor
+monitoring/bin/system_monitor
