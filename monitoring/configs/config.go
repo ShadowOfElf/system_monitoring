@@ -17,8 +17,11 @@ type LoggerConf struct {
 }
 
 type Config struct {
-	GRPC   GRPCConf
-	Logger LoggerConf
+	GRPC          GRPCConf
+	Logger        LoggerConf
+	MaxSize       int
+	Period        int
+	RepeatRateSec int
 }
 
 func NewConfig(configFile string) *Config {
@@ -27,6 +30,10 @@ func NewConfig(configFile string) *Config {
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Configuration is not loaded, default values will be used")
 	}
+
+	maxSize := viper.GetInt("app.max_size")
+	period := viper.GetInt("app.period")
+	repeatRate := viper.GetInt("app.repeat_rate")
 
 	logLevel := viper.GetString("logger.level")
 	logValid := logLevelValidator(logLevel)
@@ -46,8 +53,11 @@ func NewConfig(configFile string) *Config {
 	}
 
 	return &Config{
-		Logger: LoggerConf{Level: logger.LogLevel(logLevel)},
-		GRPC:   GRPCConf{Addr: addrGRPC},
+		Logger:        LoggerConf{Level: logger.LogLevel(logLevel)},
+		GRPC:          GRPCConf{Addr: addrGRPC},
+		MaxSize:       maxSize,
+		Period:        period,
+		RepeatRateSec: repeatRate,
 	}
 }
 

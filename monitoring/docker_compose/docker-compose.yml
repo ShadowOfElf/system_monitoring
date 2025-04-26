@@ -1,8 +1,17 @@
 services:
   go-app:
     image: ubuntu:20.04
+    container_name: monitor_testing_container
     volumes:
       - ../bin:/app
     command: /bin/bash -c "while true; do sleep 1000; done"
     stdin_open: true
     tty: true
+    ports:
+      - 50051:50051
+    networks:
+      - app-network
+
+networks:
+      app-network:
+        driver: bridge

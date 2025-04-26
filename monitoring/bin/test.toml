@@ -1,6 +1,9 @@
 [app]
 type="main"
 system="linux"
+max_size=10000
+period=100
+repeat_rate=1
 
 [logger]
 level="DEBUG"
