@@ -18,8 +18,7 @@ func New(logg logger.LogInterface, stor storage.InterfaceStorage) *App {
 	}
 }
 
-func (a *App) AddSnapshot() {
-	element := resources.Snapshot{} // TODO: тут будет получение из снапшотера
+func (a *App) AddSnapshot(element resources.Snapshot) {
 	a.Storage.Add(element)
 }
 

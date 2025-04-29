@@ -10,6 +10,7 @@ import (
 
 	"github.com/ShadowOfElf/system_monitoring/configs"
 	"github.com/ShadowOfElf/system_monitoring/internal/app"
+	"github.com/ShadowOfElf/system_monitoring/internal/collector"
 	"github.com/ShadowOfElf/system_monitoring/internal/logger"
 	internal_grpc "github.com/ShadowOfElf/system_monitoring/internal/server/grpc"
 	"github.com/ShadowOfElf/system_monitoring/internal/storage"
@@ -35,6 +36,7 @@ func main() {
 	logg.Info("APP Started")
 	application := app.New(logg, stor)
 	grpcServer := internal_grpc.NewServerGRPC(application, config.GRPC)
+	collectorService := collector.NewCollectorLinux(application)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
@@ -49,10 +51,13 @@ func main() {
 		}
 	}()
 
+	collectorService.Start(ctx, config.RepeatRateSec)
+	defer collectorService.Stop()
+
 	logg.Info("Monitor server is running...")
 	if err := grpcServer.Start(); err != nil {
 		logg.Error("failed to start grpc server: " + err.Error())
 	}
 	wg.Wait()
-	fmt.Println(application)
+	fmt.Println(application.Storage.GetElements())
 }

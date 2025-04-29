@@ -21,11 +21,11 @@ type Storage struct {
 	elements []resources.Snapshot
 	len      int
 	maxSize  int
-	mu       sync.Mutex
+	mu       sync.RWMutex
 }
 
 func NewStorage(maxSize int, log logger.LogInterface) InterfaceStorage {
-	elements := make([]resources.Snapshot, maxSize)
+	elements := make([]resources.Snapshot, 0, maxSize)
 	return &Storage{
 		log:      log,
 		elements: elements,
@@ -35,6 +35,9 @@ func NewStorage(maxSize int, log logger.LogInterface) InterfaceStorage {
 }
 
 func (s *Storage) Add(el resources.Snapshot) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.len == s.maxSize {
 		copy(s.elements, s.elements[1:])
 		s.elements = s.elements[:len(s.elements)-1]
@@ -54,13 +57,25 @@ func (s *Storage) GetElements() []resources.Snapshot {
 }
 
 func (s *Storage) GetStatistic(interval int) resources.Statistic {
+	//TODO не забыть или пересчитывать интервал в зависимости от repeat_rate или убрать repeat_rate
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	lenElements := len(s.elements) - 1
+	repeat := interval
+	if repeat > lenElements {
+		repeat = len(s.elements)
+	}
+	var load float32
+	for i := lenElements; i >= lenElements-repeat; i-- {
+		load += s.elements[i].Load
+	}
+
 	stat := resources.Statistic{
-		Load:       1234,
+		Load:       load / float32(repeat),
 		CPU:        2345,
 		Disk:       3456,
 		Net:        4567,
 		TopTalkers: []resources.TopTalker{resources.TopTalker{ID: 1, Name: "Test", LoadNet: 1111}},
-	} // Тут будем получать стату из обработчика или вычислять на месте
-
+	}
 	return stat
 }

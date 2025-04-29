@@ -23,6 +23,7 @@ func NewGRPCService(app *app.App) *ServiceGRPC {
 
 func (s *ServiceGRPC) GetStatisticProto(ctx context.Context, req *pb.GetStatistic) (*pb.StatisticResponse, error) {
 	interval := req.StatsInterval
+	// TODO добавить конкурентность
 	statistic := s.app.GetStatistic(int(interval))
 	return statToProtoStat(statistic), nil
 }
