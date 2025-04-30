@@ -32,11 +32,11 @@ func main() {
 	}
 	config := configs.NewConfig(configString)
 	logg := logger.New(config.Logger.Level)
-	stor := storage.NewStorage(config.MaxSize, logg)
+	stor := storage.NewStorage(config.MaxSize, config.RepeatRateSec, logg, config.Enable)
 	logg.Info("APP Started")
 	application := app.New(logg, stor)
 	grpcServer := internal_grpc.NewServerGRPC(application, config.GRPC)
-	collectorService := collector.NewCollectorLinux(application)
+	collectorService := collector.NewCollector(application, config.Enable)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()

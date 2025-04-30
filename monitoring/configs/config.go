@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/ShadowOfElf/system_monitoring/internal/logger"
+	"github.com/ShadowOfElf/system_monitoring/internal/resources"
 	"github.com/spf13/viper"
 )
 
@@ -19,6 +20,7 @@ type LoggerConf struct {
 type Config struct {
 	GRPC          GRPCConf
 	Logger        LoggerConf
+	Enable        resources.CollectorEnable
 	MaxSize       int
 	Period        int
 	RepeatRateSec int
@@ -52,9 +54,18 @@ func NewConfig(configFile string) *Config {
 		addrGRPC = "127.0.0.1:8070"
 	}
 
+	enable := resources.CollectorEnable{
+		Load:       viper.GetBool("collector.load"),
+		CPU:        viper.GetBool("collector.cpu"),
+		Disk:       viper.GetBool("collector.disk"),
+		Net:        viper.GetBool("collector.net"),
+		TopTalkers: viper.GetBool("collector.top_talkers"),
+	}
+
 	return &Config{
 		Logger:        LoggerConf{Level: logger.LogLevel(logLevel)},
 		GRPC:          GRPCConf{Addr: addrGRPC},
+		Enable:        enable,
 		MaxSize:       maxSize,
 		Period:        period,
 		RepeatRateSec: repeatRate,

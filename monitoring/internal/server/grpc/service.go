@@ -23,12 +23,18 @@ func NewGRPCService(app *app.App) *ServiceGRPC {
 
 func (s *ServiceGRPC) GetStatisticProto(ctx context.Context, req *pb.GetStatistic) (*pb.StatisticResponse, error) {
 	interval := req.StatsInterval
-	// TODO добавить конкурентность
-	statistic := s.app.GetStatistic(int(interval))
+	statistic := make(chan resources.Statistic, 1)
+
+	go func() {
+		statistic <- s.app.GetStatistic(int(interval))
+	}()
+
 	return statToProtoStat(statistic), nil
 }
 
-func statToProtoStat(stat resources.Statistic) *pb.StatisticResponse {
+func statToProtoStat(statCh chan resources.Statistic) *pb.StatisticResponse {
+	stat := <-statCh
+	close(statCh)
 	talkers := make([]*pb.TopTalker, 0, len(stat.TopTalkers))
 
 	for _, talker := range stat.TopTalkers {
@@ -39,7 +45,6 @@ func statToProtoStat(stat resources.Statistic) *pb.StatisticResponse {
 		}
 		talkers = append(talkers, &protoTalker)
 	}
-
 	protoStat := &pb.Statistic{
 		Load:      stat.Load,
 		Cpu:       stat.CPU,

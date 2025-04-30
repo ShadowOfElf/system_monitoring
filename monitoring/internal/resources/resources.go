@@ -21,3 +21,11 @@ type TopTalker struct {
 	Name    string
 	LoadNet float32
 }
+
+type CollectorEnable struct {
+	Load       bool
+	CPU        bool
+	Disk       bool
+	Net        bool
+	TopTalkers bool
+}

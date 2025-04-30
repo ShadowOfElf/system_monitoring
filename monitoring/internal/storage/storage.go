@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"math"
 	"sync"
 
 	"github.com/ShadowOfElf/system_monitoring/internal/logger"
@@ -17,20 +18,24 @@ type InterfaceStorage interface {
 }
 
 type Storage struct {
-	log      logger.LogInterface
-	elements []resources.Snapshot
-	len      int
-	maxSize  int
-	mu       sync.RWMutex
+	log        logger.LogInterface
+	elements   []resources.Snapshot
+	len        int
+	maxSize    int
+	repeatRate int
+	mu         sync.RWMutex
+	enable     resources.CollectorEnable
 }
 
-func NewStorage(maxSize int, log logger.LogInterface) InterfaceStorage {
+func NewStorage(maxSize int, repeatRate int, log logger.LogInterface, enable resources.CollectorEnable) InterfaceStorage {
 	elements := make([]resources.Snapshot, 0, maxSize)
 	return &Storage{
-		log:      log,
-		elements: elements,
-		len:      0,
-		maxSize:  maxSize,
+		log:        log,
+		elements:   elements,
+		len:        0,
+		maxSize:    maxSize,
+		repeatRate: repeatRate,
+		enable:     enable,
 	}
 }
 
@@ -60,22 +65,33 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 	//TODO не забыть или пересчитывать интервал в зависимости от repeat_rate или убрать repeat_rate
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	lenElements := len(s.elements) - 1
-	repeat := interval
+	lenElements := len(s.elements)
+
+	if lenElements < 0 {
+		return resources.Statistic{}
+	}
+
+	repeat := int(math.Round(float64(interval) / float64(s.repeatRate)))
 	if repeat > lenElements {
 		repeat = len(s.elements)
 	}
+
 	var load float32
-	for i := lenElements; i >= lenElements-repeat; i-- {
-		load += s.elements[i].Load
+	if s.enable.Load {
+		for i := lenElements - 1; i >= lenElements-repeat; i-- {
+			load += s.elements[i].Load
+		}
+		load = load / float32(repeat)
+	} else {
+		load = -1
 	}
 
 	stat := resources.Statistic{
-		Load:       load / float32(repeat),
+		Load:       load,
 		CPU:        2345,
 		Disk:       3456,
 		Net:        4567,
-		TopTalkers: []resources.TopTalker{resources.TopTalker{ID: 1, Name: "Test", LoadNet: 1111}},
+		TopTalkers: []resources.TopTalker{{ID: 1, Name: "Test", LoadNet: 1111}},
 	}
 	return stat
 }
