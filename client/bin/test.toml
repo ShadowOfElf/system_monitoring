@@ -1,0 +1,9 @@
+[app]
+type="main"
+
+[logger]
+level="DEBUG"
+
+[grpc]
+host=""
+port="50052"

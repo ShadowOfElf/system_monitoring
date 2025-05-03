@@ -19,7 +19,7 @@ type ServerGRPC struct {
 }
 
 func NewServerGRPC(app *app.App, conf configs.GRPCConf) *ServerGRPC {
-	server := grpc.NewServer() // TODO: тут добавим мидлварю
+	server := grpc.NewServer(grpc.UnaryInterceptor(UnaryServerLogRequestInterceptor(app.Logger)))
 	return &ServerGRPC{
 		conf:    conf,
 		app:     app,

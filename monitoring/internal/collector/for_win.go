@@ -10,21 +10,23 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/internal/resources"
 )
 
-type WinCollector struct {
-	app    *app.App
-	cancel context.CancelFunc
-	enable resources.CollectorEnable
+type SCollector struct {
+	app         *app.App
+	cancel      context.CancelFunc
+	enable      resources.CollectorEnable
+	collectLoad func() (float32, error)
 }
 
 func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceCollector {
-	return &WinCollector{
-		app:    app,
-		cancel: nil,
-		enable: enable,
+	return &SCollector{
+		app:         app,
+		cancel:      nil,
+		enable:      enable,
+		collectLoad: CollectLoad,
 	}
 }
 
-func (c *WinCollector) Start(ctx context.Context, tick int) {
+func (c *SCollector) Start(ctx context.Context, tick int) {
 	ctxCollector, cancel := context.WithCancel(ctx)
 	c.cancel = cancel
 
@@ -47,18 +49,18 @@ func (c *WinCollector) Start(ctx context.Context, tick int) {
 	c.app.Logger.Debug("Запуск сборщика")
 }
 
-func (c *WinCollector) Stop() {
+func (c *SCollector) Stop() {
 	if c.cancel != nil {
 		c.app.Logger.Debug("Остановка сборщика")
 		c.cancel()
 	}
 }
 
-func (c *WinCollector) Collect() resources.Snapshot {
+func (c *SCollector) Collect() resources.Snapshot {
 	var err error
 	var load float32 = -1
 	if c.enable.Load {
-		load, err = CollectLoadWin()
+		load, err = c.collectLoad()
 	}
 	if err != nil {
 		c.app.Logger.Error("Ошибка в получении загрузки:" + err.Error())
@@ -68,7 +70,24 @@ func (c *WinCollector) Collect() resources.Snapshot {
 	}
 }
 
-func CollectLoadWin() (float32, error) {
-	// TODO реализовать
-	return 0, nil
+func CollectLoad() (float32, error) {
+	cmd := exec.Command("cmd", "/C", "typeperf \"\\Processor(_Total)\\% Processor Time\" -sc 1 | findstr /v \"(PDH-\"")
+	output, err := cmd.Output()
+	if err != nil {
+		return 0, err
+	}
+
+	output = bytes.TrimSpace(output)
+
+	result, err := strconv.ParseFloat(string(output), 32)
+	if err != nil {
+		return 0, err
+	}
+
+	load := 100 - result
+
+	// Округляем до двух знаков после запятой
+	roundedLoad := math.Round(load*100) / 100
+
+	return float32(roundedLoad), nil
 }

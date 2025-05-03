@@ -14,21 +14,23 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/internal/resources"
 )
 
-type MacCollector struct {
-	app    *app.App
-	cancel context.CancelFunc
-	enable resources.CollectorEnable
+type SCollector struct {
+	app         *app.App
+	cancel      context.CancelFunc
+	enable      resources.CollectorEnable
+	collectLoad func() (float32, error)
 }
 
 func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceCollector {
-	return &MacCollector{
-		app:    app,
-		cancel: nil,
-		enable: enable,
+	return &SCollector{
+		app:         app,
+		cancel:      nil,
+		enable:      enable,
+		collectLoad: CollectLoad,
 	}
 }
 
-func (c *MacCollector) Start(ctx context.Context, tick int) {
+func (c *SCollector) Start(ctx context.Context, tick int) {
 	ctxCollector, cancel := context.WithCancel(ctx)
 	c.cancel = cancel
 
@@ -51,18 +53,18 @@ func (c *MacCollector) Start(ctx context.Context, tick int) {
 	c.app.Logger.Debug("Запуск сборщика")
 }
 
-func (c *MacCollector) Stop() {
+func (c *SCollector) Stop() {
 	if c.cancel != nil {
 		c.app.Logger.Debug("Остановка сборщика")
 		c.cancel()
 	}
 }
 
-func (c *MacCollector) Collect() resources.Snapshot {
+func (c *SCollector) Collect() resources.Snapshot {
 	var err error
 	var load float32 = -1
 	if c.enable.Load {
-		load, err = CollectLoadMac()
+		load, err = c.collectLoad()
 	}
 	if err != nil {
 		c.app.Logger.Error("Ошибка в получении загрузки:" + err.Error())
@@ -72,7 +74,7 @@ func (c *MacCollector) Collect() resources.Snapshot {
 	}
 }
 
-func CollectLoadMac() (float32, error) {
+func CollectLoad() (float32, error) {
 	cmd := exec.Command("bash", "-c", "top -l 1 | grep \"CPU usage\" | awk '{print $7}' | cut -d'%' -f1")
 	output, err := cmd.Output()
 	if err != nil {

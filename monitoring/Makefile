@@ -27,3 +27,7 @@ generate:
 	rm -rf ./pkg
 	mkdir -p ./pkg
 	protoc --go_out=./pkg --go-grpc_out=./pkg/ --proto_path=./protobuf ./protobuf/*.proto
+
+test:
+	go test -v -race ./internal/...
+

@@ -14,21 +14,23 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/internal/resources"
 )
 
-type LinuxCollector struct {
-	app    *app.App
-	cancel context.CancelFunc
-	enable resources.CollectorEnable
+type SCollector struct {
+	app         *app.App
+	cancel      context.CancelFunc
+	enable      resources.CollectorEnable
+	collectLoad func() (float32, error)
 }
 
 func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceCollector {
-	return &LinuxCollector{
-		app:    app,
-		cancel: nil,
-		enable: enable,
+	return &SCollector{
+		app:         app,
+		cancel:      nil,
+		enable:      enable,
+		collectLoad: CollectLoad,
 	}
 }
 
-func (c *LinuxCollector) Start(ctx context.Context, tick int) {
+func (c *SCollector) Start(ctx context.Context, tick int) {
 	ctxCollector, cancel := context.WithCancel(ctx)
 	c.cancel = cancel
 
@@ -51,18 +53,18 @@ func (c *LinuxCollector) Start(ctx context.Context, tick int) {
 	c.app.Logger.Debug("Запуск сборщика")
 }
 
-func (c *LinuxCollector) Stop() {
+func (c *SCollector) Stop() {
 	if c.cancel != nil {
 		c.app.Logger.Debug("Остановка сборщика")
 		c.cancel()
 	}
 }
 
-func (c *LinuxCollector) Collect() resources.Snapshot {
+func (c *SCollector) Collect() resources.Snapshot {
 	var err error
 	var load float32 = -1
 	if c.enable.Load {
-		load, err = CollectLoadLin()
+		load, err = c.collectLoad()
 	}
 
 	if err != nil {
@@ -73,7 +75,7 @@ func (c *LinuxCollector) Collect() resources.Snapshot {
 	}
 }
 
-func CollectLoadLin() (float32, error) {
+func CollectLoad() (float32, error) {
 	cmd := exec.Command("bash", "-c", "top -b -n 1 | grep \"%Cpu(s)\" | cut -d',' -f4 | awk '{print $1}'")
 	output, err := cmd.Output()
 	if err != nil {

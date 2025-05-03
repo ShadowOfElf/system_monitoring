@@ -8,8 +8,6 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/internal/resources"
 )
 
-// TODO: тут делаем интерфейс и реализацию через слайс с вытеснением принимающий размер слайса
-
 type InterfaceStorage interface {
 	Add(el resources.Snapshot)
 	Len() int
@@ -57,12 +55,10 @@ func (s *Storage) Len() int {
 }
 
 func (s *Storage) GetElements() []resources.Snapshot {
-	// TODO: Возможно удалить ближе к релизу, вроде ненужная фигня
 	return s.elements
 }
 
 func (s *Storage) GetStatistic(interval int) resources.Statistic {
-	//TODO не забыть или пересчитывать интервал в зависимости от repeat_rate или убрать repeat_rate
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	lenElements := len(s.elements)
