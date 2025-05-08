@@ -15,6 +15,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Fetch full history
+        run: git fetch --unshallow
+
       - name: Get changes files
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
@@ -38,21 +41,29 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Get changes files
-        id: changed_monitoring
+        id: changed_client
         uses: tj-actions/changed-files@v35
         with:
           files:
             client/**
 
-      - name: Go set up
+      - name: Debug changed files
         if: steps.changed_monitoring.outputs.files_changed == 'true'
+        run: |
+          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
+          echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
+
+      - name: Go set up
+        if: steps.changed_client.outputs.files_changed == 'true'
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
 
       - name: Run linter
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        if: steps.changed_client.outputs.files_changed == 'true'
         run: make lint
         working-directory: client
