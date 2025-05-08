@@ -25,7 +25,6 @@ jobs:
             monitoring/**
 
       - name: Debug changed files
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
         run: |
           echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
           echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
@@ -57,7 +56,6 @@ jobs:
             client/**
 
       - name: Debug changed files
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
         run: |
           echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
           echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
