@@ -14,8 +14,8 @@ jobs:
     strategy:
       matrix:
         project:
-          - { dir: "monitoring", path: "monitoring/**" }
-          - { dir: "client", path: "client/**" }
+          - { dir: "monitoring", path: "monitoring" }
+          - { dir: "client", path: "client" }
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -24,15 +24,12 @@ jobs:
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
         with:
-          files: '**/*'
+          files: ${{ matrix.project.path }}
 
-      - name: List all changed files
+      - name: Debug files changed value
         run: |
-          echo "All changed files: ${{ steps.changed_monitoring.outputs.all_changed_files }}"
-
-      - name: Debug files changed
-        run: |
-          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
+          echo "files_changed = ${{ steps.changed_monitoring.outputs.files_changed }}"
+          echo "all_changed_files = ${{ steps.changed_monitoring.outputs.all_changed_files }}"
 
       - name: Go set up
         if: steps.changed_monitoring.outputs.files_changed == 'true'
