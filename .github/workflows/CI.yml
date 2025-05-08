@@ -20,30 +20,40 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Get changes files
-        id: changed_monitoring
+      - name: Get changes for ${{ matrix.project.dir }}
+        id: changed_files
         uses: tj-actions/changed-files@v35
         with:
-          files_${{ matrix.project.name }}: ${{ matrix.project.dir }}
+          files: ${{ matrix.project.path }}
+          json: true
+
+      - name: Set changed flag
+        id: set_flag
+        run: |
+          # Если есть изменения — ставим флаг в true
+          if [[ "${{ steps.changed_files.outputs.all_changed_files }}" != "" ]]; then
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+          echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Debug outputs
         run: |
-          echo "All changed files: ${{ steps.changed_monitoring.outputs.all_changed_files }}"
-          echo "${{ matrix.project.name }}_changed = ${{ steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] }}"
-    
+          echo "All changed files: ${{ steps.changed_files.outputs.all_changed_files }}"
+          echo "Has changes: ${{ steps.set_flag.outputs.has_changes }}"
 
       - name: Go set up
-        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
+        if: steps.set_flag.outputs.has_changes == 'true'
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
 
       - name: Run linter
-        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
+        if: steps.set_flag.outputs.has_changes == 'true'
         run: make lint
         working-directory: ${{ matrix.project.dir }}
 
       - name: Run tests
-        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
+        if: steps.set_flag.outputs.has_changes == 'true'
         run: make test
         working-directory: ${{ matrix.project.dir }}
