@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -59,5 +58,4 @@ func main() {
 		logg.Error("failed to start grpc server: " + err.Error())
 	}
 	wg.Wait()
-	fmt.Println(application.Storage.GetElements())
 }
