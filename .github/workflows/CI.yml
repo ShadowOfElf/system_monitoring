@@ -9,63 +9,54 @@ env:
   GO111MODULE: "on"
 
 jobs:
-  detect-changes:
+  pipeline:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    strategy:
+      matrix:
+        project:
+          - { dir: ":
+      matrix:
+        project:
+          - { dir: "monitoring", path: "monitoring" }
+          - { dir: "client", path: "client" }
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Get all changed files
+      - name: Get changes for ${{ matrix.project.dir }}
         id: changed_files
         uses: tj-actions/changed-files@v35
         with:
-          files: |
-            monitoring/
-            client/
+          files: ${{ matrix.project.path }}
           json: true
 
-      - name: Set project matrix
-        id: set_matrix
+      - name: Set changed flag for ${{ matrix.project.dir }}
+        id: set_flag
         run: |
-          CHANGED_FILES='${{ steps.changed_files.outputs.all_changed_files }}'
+          # Проверяем изменения для каждого проекта отдельно
+          if [[ "${{ steps.changed_files.outputs.all_changed_files }}" != "" ]]; then
+            echo "has_changes=true" >> $GITHUB_ENV
+          else
+            echo "has_changes=false" >> $GITHUB_ENV
+          fi
 
-          PROJECTS=("monitoring" "client")
+      - name: Debug outputs for ${{ matrix.project.dir }}
+        run: |
+          echo "All changed files: ${{ steps.changed_files.outputs.all_changed_files }}"
+          echo "Has changes: ${{ env.has_changes }}"
 
-          MATRIX=()
-
-          for project in "${PROJECTS[@]}"; do
-            if echo "$CHANGED_FILES" | grep -q "\"$project/"; then
-              MATRIX+=("{ \"dir\": \"$project\", \"path\": \"$project\" }")
-            fi
-          done
-
-          joined=$(IFS=,; echo "[${MATRIX[*]}]")
-          echo "matrix=$joined" >> "$GITHUB_OUTPUT"
-
-  pipeline:
-    needs: detect-changes
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Debug changed project
-        run: | 
-          echo "Building project in directory: ${{ matrix.dir }}"
-
-      - name: Go set up
+      - name: Go set up for ${{ matrix.project.dir }}
+        if: env.has_changes == 'true'
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
 
-      - name: Run linter
+      - name: Run linter for ${{ matrix.project.dir }}
+        if: env.has_changes == 'true'
         run: make lint
-        working-directory: ${{ matrix.dir }}
+        working-directory: ${{ matrix.project.dir }}
 
-      - name: Run tests
+      - name: Run tests for ${{ matrix.project.dir }}
+        if: env.has_changes == 'true'
         run: make test
-        working-directory: ${{ matrix.dir }}
+        working-directory: ${{ matrix.project.dir }}
