@@ -9,51 +9,52 @@ env:
   GO111MODULE: "on"
 
 jobs:
-  pipeline:
+  monitoring_jobs:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project:
-          - { dir: "monitoring", path: "monitoring" }
-          - { dir: "client", path: "client" }
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Get changes for ${{ matrix.project.dir }}
-        id: changed_files
+      - name: Get changes files
+        id: changed_monitoring
         uses: tj-actions/changed-files@v35
         with:
-          files: ${{ matrix.project.path }}
-          json: true
+          files:
+            monitoring/**
 
-      - name: Set changed flag for ${{ matrix.project.dir }}
-        id: set_flag
-        run: |
-          # Проверяем изменения для каждого проекта отдельно
-          if [[ "${{ steps.changed_files.outputs.all_changed_files }}" != "" ]]; then
-            echo "has_changes=true" >> $GITHUB_ENV
-          else
-            echo "has_changes=false" >> $GITHUB_ENV
-          fi
-
-      - name: Debug outputs for ${{ matrix.project.dir }}
-        run: |
-          echo "All changed files: ${{ steps.changed_files.outputs.all_changed_files }}"
-          echo "Has changes: ${{ env.has_changes }}"
-
-      - name: Go set up for ${{ matrix.project.dir }}
-        if: env.has_changes == 'true'
+      - name: Go set up
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
 
-      - name: Run linter for ${{ matrix.project.dir }}
-        if: env.has_changes == 'true'
-        run: make lint
-        working-directory: ${{ matrix.project.dir }}
+      - name: Check out code
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        uses: actions/checkout@v3
 
-      - name: Run tests for ${{ matrix.project.dir }}
-        if: env.has_changes == 'true'
-        run: make test
-        working-directory: ${{ matrix.project.dir }}
+      - name: Run linter
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        run: make lint
+        working-directory: monitoring
+
+  client_jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get changes files
+        id: changed_monitoring
+        uses: tj-actions/changed-files@v35
+        with:
+          files:
+            client/**
+
+      - name: Go set up
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.23
+
+      - name: Check out code
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        uses: actions/checkout@v3
+
+      - name: Run linter
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        run: make lint
+        working-directory: client
