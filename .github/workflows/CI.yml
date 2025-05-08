@@ -12,6 +12,9 @@ jobs:
   monitoring_jobs:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
       - name: Get changes files
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
@@ -25,10 +28,6 @@ jobs:
         with:
           go-version: ^1.23
 
-      - name: Check out code
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
-        uses: actions/checkout@v3
-
       - name: Run linter
         if: steps.changed_monitoring.outputs.files_changed == 'true'
         run: make lint
@@ -37,6 +36,9 @@ jobs:
   client_jobs:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
       - name: Get changes files
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
@@ -49,10 +51,6 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
-
-      - name: Check out code
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
-        uses: actions/checkout@v3
 
       - name: Run linter
         if: steps.changed_monitoring.outputs.files_changed == 'true'
