@@ -20,21 +20,19 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Debug matrix
-        run: |
-          echo "Current project dir: ${{ matrix.project.dir }}"
-          echo "Path pattern: ${{ matrix.project.path }}"
-
       - name: Get changes files
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
         with:
-          files: ${{ matrix.project.path }}
+          files: '**/*'
 
-      - name: Debug changes
+      - name: List all changed files
         run: |
-            echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
-            echo "All changed files: ${{ steps.changed_monitoring.outputs.all_changed_files }}"
+          echo "All changed files: ${{ steps.changed_monitoring.outputs.all_changed_files }}"
+
+      - name: Debug files changed
+        run: |
+          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
 
       - name: Go set up
         if: steps.changed_monitoring.outputs.files_changed == 'true'
