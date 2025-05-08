@@ -9,7 +9,7 @@ level="DEBUG"
 
 [grpc]
 host=""
-port="50052"
+port="50051"
 
 [collector]
 load=true
