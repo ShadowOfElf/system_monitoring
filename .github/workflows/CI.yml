@@ -24,25 +24,26 @@ jobs:
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
         with:
-          files: ${{ matrix.project.path }}
+          files_${{ matrix.project.name }}: ${{ matrix.project.dir }}
 
-      - name: Debug files changed value
+      - name: Debug outputs
         run: |
-          echo "files_changed = ${{ steps.changed_monitoring.outputs.files_changed }}"
-          echo "all_changed_files = ${{ steps.changed_monitoring.outputs.all_changed_files }}"
+          echo "All changed files: ${{ steps.changed_monitoring.outputs.all_changed_files }}"
+          echo "${{ matrix.project.name }}_changed = ${{ steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] }}"
+    
 
       - name: Go set up
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
         uses: actions/setup-go@v3
         with:
           go-version: ^1.23
 
       - name: Run linter
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
         run: make lint
         working-directory: ${{ matrix.project.dir }}
 
       - name: Run tests
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        if: steps.changed_monitoring.outputs[format('{0}_changed', matrix.project.name)] == 'true'
         run: make test
         working-directory: ${{ matrix.project.dir }}
