@@ -20,6 +20,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Debug matrix
+        run: |
+          echo "Current project dir: ${{ matrix.project.dir }}"
+          echo "Path pattern: ${{ matrix.project.path }}"
+
       - name: Get changes files
         id: changed_monitoring
         uses: tj-actions/changed-files@v35
