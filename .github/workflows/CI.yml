@@ -14,9 +14,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-
-      - name: Fetch full history
-        run: git fetch --unshallow
+        with:
+          fetch-depth: 0
 
       - name: Get changes files
         id: changed_monitoring
@@ -24,6 +23,12 @@ jobs:
         with:
           files:
             monitoring/**
+
+      - name: Debug changed files
+        if: steps.changed_monitoring.outputs.files_changed == 'true'
+        run: |
+          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
+          echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
 
       - name: Go set up
         if: steps.changed_monitoring.outputs.files_changed == 'true'
