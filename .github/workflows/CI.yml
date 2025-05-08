@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        projects:
+        project:
           - { dir: "monitoring", path: "monitoring/**" }
           - { dir: "client", path: "client/**" }
     steps:
