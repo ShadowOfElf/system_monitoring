@@ -31,7 +31,6 @@ jobs:
         run: |
           CHANGED_FILES='${{ steps.changed_files.outputs.all_changed_files }}'
 
-          # Default projects
           PROJECTS=("monitoring" "client")
 
           MATRIX=()
@@ -42,9 +41,7 @@ jobs:
             fi
           done
 
-          # Join JSON array
           joined=$(IFS=,; echo "[${MATRIX[*]}]")
-
           echo "matrix=$joined" >> "$GITHUB_OUTPUT"
 
   pipeline:
@@ -57,7 +54,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Debug changed project
-        run: |
+        run: | 
           echo "Building project in directory: ${{ matrix.dir }}"
 
       - name: Go set up
