@@ -9,64 +9,43 @@ env:
   GO111MODULE: "on"
 
 jobs:
-  monitoring_jobs:
+  determine_changes:
     runs-on: ubuntu-latest
+    outputs:
+      client_changed: ${{ steps.check-changes.outputs.client }}
+      monitoring_changed: ${{ steps.check-changes.outputs.monitoring }}
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Get changes files
-        id: changed_monitoring
-        uses: tj-actions/changed-files@v35
+      - name: Check for changes in client/monitoring
+        id: check-changes
+        uses: tj-actions/changed-files@v34
         with:
-          files:
+          files: |
+            client/**
             monitoring/**
 
-      - name: Debug changed files
-        run: |
-          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
-          echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
-
-      - name: Go set up
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
-        uses: actions/setup-go@v3
-        with:
-          go-version: ^1.23
-
-      - name: Run linter
-        if: steps.changed_monitoring.outputs.files_changed == 'true'
-        run: make lint
-        working-directory: monitoring
-
-  client_jobs:
+  lint_client:
     runs-on: ubuntu-latest
+    needs: determine_changes
+    if: ${{ needs.determine_changes.outputs.client_changed == 'true' }}
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Get changes files
-        id: changed_client
-        uses: tj-actions/changed-files@v35
-        with:
-          files:
-            client/**
-
-      - name: Debug changed files
-        run: |
-          echo "Files changed: ${{ steps.changed_monitoring.outputs.files_changed }}"
-          echo "Changed files: ${{ steps.changed_monitoring.outputs.changed_files }}"
-
-      - name: Go set up
-        if: steps.changed_client.outputs.files_changed == 'true'
-        uses: actions/setup-go@v3
-        with:
-          go-version: ^1.23
-
-      - name: Run linter
-        if: steps.changed_client.outputs.files_changed == 'true'
+      - name: Run make lint in client
         run: make lint
         working-directory: client
+
+  lint_monitoring:
+    runs-on: ubuntu-latest
+    needs: determine_changes
+    if: ${{ needs.determine_changes.outputs.monitoring_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run make lint in monitoring
+        run: make lint
+        working-directory: monitoring
