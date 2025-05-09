@@ -18,13 +18,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check for changes in client/monitoring
+      - name: Check for changes in client and monitoring (deep)
         id: check-changes
         uses: tj-actions/changed-files@v34
         with:
           files: |
-            client/**
-            monitoring/**
+            client/
+            monitoring/
 
   lint_client:
     runs-on: ubuntu-latest
