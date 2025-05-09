@@ -9,27 +9,29 @@ env:
   GO111MODULE: "on"
 
 jobs:
-  determine_changes:
+  filter_changes:
+    name: Filter changes
     runs-on: ubuntu-latest
     outputs:
-      client_changed: ${{ steps.check-changes.outputs.client }}
-      monitoring_changed: ${{ steps.check-changes.outputs.monitoring }}
+      client_changed: ${{ steps.filter.outputs.client }}
+      monitoring_changed: ${{ steps.filter.outputs.monitoring }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check for changes in client and monitoring (deep)
-        id: check-changes
-        uses: tj-actions/changed-files@v34
+      - name: Filter changes
+        id: filter
+        uses: dorny/paths-filter@v2
         with:
-          files: |
-            client/
-            monitoring/
+          filters: |
+            client:
+              - 'client/**'
+            monitoring:
+              - 'monitoring/**'
 
   lint_client:
     runs-on: ubuntu-latest
-    needs: determine_changes
-    if: ${{ needs.determine_changes.outputs.client_changed == 'true' }}
+    if: ${{ needs.filter_changes.outputs.client_changed == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -40,8 +42,7 @@ jobs:
 
   lint_monitoring:
     runs-on: ubuntu-latest
-    needs: determine_changes
-    if: ${{ needs.determine_changes.outputs.monitoring_changed == 'true' }}
+    if: ${{ needs.filter_changes.outputs.monitoring_changed == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
