@@ -29,9 +29,14 @@ jobs:
             monitoring:
               - 'monitoring/**'
 
+      - name: Debug output
+        run: |
+          echo "Monitoring changed: ${{ steps.filter.outputs.monitoring_changed }}"
+          echo "Type: $(typeof ${{ steps.filter.outputs.monitoring_changed }})"
+
   lint_client:
     runs-on: ubuntu-latest
-    if: ${{ needs.filter_changes.outputs.client_changed == 'true' }}
+    if: ${{ needs.filter_changes.outputs.client_changed }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -42,7 +47,7 @@ jobs:
 
   lint_monitoring:
     runs-on: ubuntu-latest
-    if: ${{ needs.filter_changes.outputs.monitoring_changed == 'true' }}
+    if: ${{ needs.filter_changes.outputs.monitoring_changed }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
