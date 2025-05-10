@@ -45,6 +45,7 @@ jobs:
       - name: Install golangci-lint (Client)
         uses: golangci/golangci-lint-action@v3
         with:
+          working-directory: ./monitoring
           version: v1.62.2
 
       - name: Run make lint in client
@@ -68,6 +69,7 @@ jobs:
       - name: Install golangci-lint (Client)
         uses: golangci/golangci-lint-action@v3
         with:
+          working-directory: ./monitoring
           version: v1.62.2
 
       - name: Run make lint in monitoring
