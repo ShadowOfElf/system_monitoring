@@ -16,9 +16,11 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-var configString string
-var frequencyString string
-var periodString string
+var (
+	configString    string
+	frequencyString string
+	periodString    string
+)
 
 func init() {
 	flag.StringVar(&configString, "config", "test.toml", "Path to configuration file")
@@ -110,5 +112,4 @@ func main() {
 			}
 		}
 	}
-
 }

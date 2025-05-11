@@ -26,6 +26,7 @@ linters-settings:
           - google.golang.org/grpc
           - google.golang.org/protobuf
           - github.com/rabbitmq
+          - github.com/olekukonko/tablewriter
       Test:
         files:
           - $test
