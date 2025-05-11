@@ -25,7 +25,9 @@ type Storage struct {
 	enable     resources.CollectorEnable
 }
 
-func NewStorage(maxSize int, repeatRate int, log logger.LogInterface, enable resources.CollectorEnable) InterfaceStorage {
+func NewStorage(
+	maxSize int, repeatRate int, log logger.LogInterface, enable resources.CollectorEnable,
+) InterfaceStorage {
 	elements := make([]resources.Snapshot, 0, maxSize)
 	return &Storage{
 		log:        log,
@@ -44,10 +46,10 @@ func (s *Storage) Add(el resources.Snapshot) {
 	if s.len == s.maxSize {
 		copy(s.elements, s.elements[1:])
 		s.elements = s.elements[:len(s.elements)-1]
-		s.len -= 1
+		s.len--
 	}
 	s.elements = append(s.elements, el)
-	s.len += 1
+	s.len++
 }
 
 func (s *Storage) Len() int {
@@ -77,7 +79,7 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 		for i := lenElements - 1; i >= lenElements-repeat; i-- {
 			load += s.elements[i].Load
 		}
-		load = load / float32(repeat)
+		load /= float32(repeat)
 	} else {
 		load = -1
 	}

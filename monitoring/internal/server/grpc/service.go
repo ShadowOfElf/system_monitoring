@@ -1,8 +1,7 @@
-package internal_grpc
+package internalgrpc
 
 import (
 	"context"
-	"sync"
 
 	"github.com/ShadowOfElf/system_monitoring/internal/app"
 	"github.com/ShadowOfElf/system_monitoring/internal/resources"
@@ -11,7 +10,6 @@ import (
 
 type ServiceGRPC struct {
 	pb.UnimplementedMonitoringServer
-	mu  sync.Mutex
 	app *app.App
 }
 
@@ -21,7 +19,7 @@ func NewGRPCService(app *app.App) *ServiceGRPC {
 	}
 }
 
-func (s *ServiceGRPC) GetStatisticProto(ctx context.Context, req *pb.GetStatistic) (*pb.StatisticResponse, error) {
+func (s *ServiceGRPC) GetStatisticProto(_ context.Context, req *pb.GetStatistic) (*pb.StatisticResponse, error) {
 	interval := req.StatsInterval
 	statistic := make(chan resources.Statistic, 1)
 

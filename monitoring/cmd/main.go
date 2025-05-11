@@ -58,5 +58,4 @@ func main() {
 		logg.Error("failed to start grpc server: " + err.Error())
 	}
 	wg.Wait()
-
 }

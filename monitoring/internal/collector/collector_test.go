@@ -10,13 +10,12 @@ import (
 
 type mockLogger struct{}
 
-func (l *mockLogger) Debug(msg string) {}
-func (l *mockLogger) Error(msg string) {}
-func (l *mockLogger) Info(msg string)  {}
-func (l *mockLogger) Warn(msg string)  {}
+func (l *mockLogger) Debug(_ string) {}
+func (l *mockLogger) Error(_ string) {}
+func (l *mockLogger) Info(_ string)  {}
+func (l *mockLogger) Warn(_ string)  {}
 
 func TestCollector(t *testing.T) {
-
 	t.Run("test_collect_from_mock", func(t *testing.T) {
 		logger := &mockLogger{}
 		application := &app.App{Logger: logger}

@@ -1,4 +1,4 @@
-package internal_grpc
+package internalgrpc
 
 import (
 	"context"
