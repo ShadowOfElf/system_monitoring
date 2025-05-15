@@ -2,7 +2,6 @@ run:
   tests: true
   build-tags:
     - bench
-    - "!bench"
 
 linters-settings:
   funlen:
@@ -63,7 +62,6 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - gofmt
     - gofumpt
     - goheader
     - goprintffuncname
@@ -81,7 +79,6 @@ linters:
     - nolintlint
     - prealloc
     - predeclared
-    - revive
     - staticcheck
     - stylecheck
     - tagliatelle

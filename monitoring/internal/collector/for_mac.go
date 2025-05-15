@@ -19,6 +19,9 @@ type SCollector struct {
 	cancel      context.CancelFunc
 	enable      resources.CollectorEnable
 	collectLoad func() (float32, error)
+	collectCPU  func() (float32, error)
+	collectDisk func() (map[string]float32, error)
+	collectNet  func() (map[string]int64, error)
 }
 
 func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceCollector {
@@ -26,7 +29,10 @@ func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceColle
 		app:         app,
 		cancel:      nil,
 		enable:      enable,
-		collectLoad: CollectLoad,
+		collectLoad: CollectTEMPFloat,
+		collectCPU:  CollectCPU,
+		collectDisk: CollectTEMPDisk,
+		collectNet:  CollectTEMPNet,
 	}
 }
 
@@ -63,18 +69,59 @@ func (c *SCollector) Stop() {
 func (c *SCollector) Collect() resources.Snapshot {
 	var err error
 	var load float32 = -1
+	var cpu float32 = -1
+	var disk map[string]float32
+	var net map[string]int64
+
 	if c.enable.Load {
 		load, err = c.collectLoad()
 	}
 	if err != nil {
 		c.app.Logger.Error("Ошибка в получении загрузки:" + err.Error())
 	}
+
+	if c.enable.CPU {
+		cpu, err = c.collectCPU()
+	}
+	if err != nil {
+		c.app.Logger.Error("Ошибка в получении CPU:" + err.Error())
+	}
+
+	if c.enable.Disk {
+		disk, err = c.collectDisk()
+	}
+	if err != nil {
+		c.app.Logger.Error("Ошибка в получении Disk:" + err.Error())
+	}
+
+	if c.enable.Net {
+		net, err = c.collectNet()
+	}
+	if err != nil {
+		c.app.Logger.Error("Ошибка в получении Net:" + err.Error())
+	}
+
 	return resources.Snapshot{
 		Load: load,
+		CPU:  cpu,
+		Disk: disk,
+		Net:  net,
 	}
 }
 
-func CollectLoad() (float32, error) {
+func CollectTEMPFloat() (float32, error) {
+	return -1, nil
+}
+
+func CollectTEMPNet() (map[string]int64, error) {
+	return nil, nil
+}
+
+func CollectTEMPDisk() (map[string]float32, error) {
+	return nil, nil
+}
+
+func CollectCPU() (float32, error) {
 	cmd := exec.Command("bash", "-c", "top -l 1 | grep \"CPU usage\" | awk '{print $7}' | cut -d'%' -f1")
 	output, err := cmd.Output()
 	if err != nil {
