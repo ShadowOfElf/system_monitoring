@@ -4,7 +4,7 @@ services:
     container_name: monitor_testing_container
     volumes:
       - ../bin:/app
-    command: /bin/bash -c "while true; do sleep 1000; done"
+    command: ["/bin/bash", "-c", "apt update && apt install -y iproute2 net-tools procps && while true; do sleep 1000; done"]
     stdin_open: true
     tty: true
     ports:

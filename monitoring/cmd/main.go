@@ -11,7 +11,7 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/internal/app"
 	"github.com/ShadowOfElf/system_monitoring/internal/collector"
 	"github.com/ShadowOfElf/system_monitoring/internal/logger"
-	internal_grpc "github.com/ShadowOfElf/system_monitoring/internal/server/grpc"
+	internalgrpc "github.com/ShadowOfElf/system_monitoring/internal/server/grpc"
 	"github.com/ShadowOfElf/system_monitoring/internal/storage"
 )
 
@@ -34,7 +34,7 @@ func main() {
 	stor := storage.NewStorage(config.MaxSize, config.RepeatRateSec, logg, config.Enable)
 	logg.Info("APP Started")
 	application := app.New(logg, stor)
-	grpcServer := internal_grpc.NewServerGRPC(application, config.GRPC)
+	grpcServer := internalgrpc.NewServerGRPC(application, config.GRPC)
 	collectorService := collector.NewCollector(application, config.Enable)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)

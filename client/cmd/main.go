@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sort"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -71,23 +73,36 @@ func main() {
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 
-	var lastLoad, lastCPU, lastDisk, lastNet float32
+	var lastLoad, lastCPU float32
+	var lastDisk map[string]float32
+	var lastNet map[string]int64
 
-	updateTable := func(load, cpu, disk, net float32) {
+	updateTable := func(load, cpu float32, disk map[string]float32, net map[string]int64) {
 		lastLoad, lastCPU, lastDisk, lastNet = load, cpu, disk, net
-
-		fmt.Print("\033[2K\r\033[1A\033[2K\r\033[1A\033[2K\r\033[1A\033[2K\r")
 
 		select {
 		case <-ctx.Done():
 			return
 		default:
+			fmt.Print("\033[2J\033[H")
 			table.ClearRows()
+
+			loadStr := ""
+			if lastLoad >= 0 {
+				loadStr = fmt.Sprintf("%.2f", lastLoad)
+			}
+			diskStr := mapToStr(lastDisk, func(s float32) string {
+				return fmt.Sprintf("%0.2f%%", s)
+			})
+			netStr := mapToStr(lastNet, func(s int64) string {
+				return fmt.Sprintf("%v", s)
+			})
+
 			table.Append([]string{
-				fmt.Sprintf("%.2f", lastLoad),
+				loadStr,
 				fmt.Sprintf("%.2f", lastCPU),
-				fmt.Sprintf("%.2f", lastDisk),
-				fmt.Sprintf("%.2f", lastNet),
+				diskStr,
+				netStr,
 			})
 			table.Render()
 		}
@@ -102,6 +117,7 @@ func main() {
 			stat, err := client.GetStatisticProto(ctx, grpcService.GetStatistic(period))
 			if err != nil {
 				logg.Error("Error with get stat:" + err.Error())
+				continue
 			}
 			select {
 			case <-ctx.Done():
@@ -112,4 +128,23 @@ func main() {
 			}
 		}
 	}
+}
+
+func mapToStr[V any](in map[string]V, f func(s V) string) string {
+	keys := make([]string, 0, len(in))
+	for name := range in {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys) // Сортируем ключи
+
+	var sb strings.Builder
+	for i, k := range keys {
+		sb.WriteString(k)
+		sb.WriteString(": ")
+		sb.WriteString(f(in[k]))
+		if i < len(keys)-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
 }

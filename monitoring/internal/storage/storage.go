@@ -74,21 +74,61 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 		repeat = len(s.elements)
 	}
 
-	var load float32
-	if s.enable.Load {
-		for i := lenElements - 1; i >= lenElements-repeat; i-- {
+	var load, cpu float32
+	disk := make(map[string]float32, lenElements)
+	net := make(map[string]int64, lenElements)
+
+	// если размеры будут очень большими вероятно стоит переделать на работу в параллельных горутинах
+	for i := lenElements - 1; i >= lenElements-repeat; i-- {
+		if s.enable.Load {
 			load += s.elements[i].Load
 		}
+
+		if s.enable.CPU {
+			cpu += s.elements[i].CPU
+		}
+
+		if s.enable.Disk {
+			for name, value := range s.elements[i].Disk {
+				disk[name] += value
+			}
+		}
+
+		if s.enable.Net {
+			for name, value := range s.elements[i].Net {
+				net[name] += value
+			}
+		}
+	}
+
+	if s.enable.Load {
 		load /= float32(repeat)
 	} else {
 		load = -1
 	}
+	if s.enable.CPU {
+		cpu /= float32(repeat)
+	} else {
+		cpu = -1
+	}
+
+	if s.enable.Disk {
+		for name, value := range disk {
+			disk[name] = value / float32(repeat)
+		}
+	}
+
+	if s.enable.Net {
+		for name, value := range net {
+			net[name] = value / int64(repeat)
+		}
+	}
 
 	stat := resources.Statistic{
 		Load:       load,
-		CPU:        2345,
-		Disk:       3456,
-		Net:        4567,
+		CPU:        cpu,
+		Disk:       disk,
+		Net:        net,
 		TopTalkers: []resources.TopTalker{{ID: 1, Name: "Test", LoadNet: 1111}},
 	}
 	return stat

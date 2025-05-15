@@ -37,16 +37,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go (если Makefile его требует, например)
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
 
-      - name: Install golangci-lint (Client)
-        uses: golangci/golangci-lint-action@v3
-        with:
-          working-directory: ./monitoring
-          version: v1.62.2
+      - name: Install golangci-lint manually
+        run: |
+          GOBIN=$PWD/golib/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+        working-directory: ./monitoring
+
+      - name: Add golib/bin to PATH
+        run: echo "$PWD/golib/bin" >> $GITHUB_PATH
+        working-directory: ./monitoring
 
       - name: Run make lint in client
         working-directory: ./client
@@ -61,16 +64,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go (если Makefile его требует, например)
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
 
-      - name: Install golangci-lint (Client)
-        uses: golangci/golangci-lint-action@v3
-        with:
-          working-directory: ./monitoring
-          version: v1.62.2
+      - name: Install golangci-lint manually
+        run: |
+          GOBIN=$PWD/golib/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+        working-directory: ./monitoring
+
+      - name: Add golib/bin to PATH
+        run: echo "$PWD/golib/bin" >> $GITHUB_PATH
+        working-directory: ./monitoring
 
       - name: Run make lint in monitoring
         working-directory: ./monitoring
