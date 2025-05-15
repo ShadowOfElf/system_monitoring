@@ -150,7 +150,6 @@ func CollectCPU() (float32, error) {
 }
 
 func CollectDisk() (map[string]float32, error) {
-
 	cmd := exec.Command("bash", "-c", "df -hT")
 	output, err := cmd.Output()
 	if err != nil {
