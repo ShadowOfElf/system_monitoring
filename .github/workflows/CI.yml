@@ -47,6 +47,7 @@ jobs:
         with:
           working-directory: ./client
           version: v1.62.2
+          skip-run: true
 
       - name: Run make lint in client
         working-directory: ./client
@@ -71,6 +72,7 @@ jobs:
         with:
           working-directory: ./monitoring
           version: v1.62.2
+          skip-run: true
 
       - name: Run make lint in monitoring
         working-directory: ./monitoring

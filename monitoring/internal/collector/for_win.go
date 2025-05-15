@@ -1,9 +1,13 @@
-//go:build Windows
+//go:build windows
 
 package collector
 
 import (
+	"bytes"
 	"context"
+	"math"
+	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/ShadowOfElf/system_monitoring/internal/app"
@@ -106,7 +110,7 @@ func (c *SCollector) Collect() resources.Snapshot {
 }
 
 func CollectTEMP() (float32, error) {
-	return -1, error()
+	return -1, nil
 }
 
 func CollectTEMPNet() (map[string]int64, error) {
