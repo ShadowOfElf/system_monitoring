@@ -37,7 +37,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go (если Makefile его требует, например)
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
@@ -45,7 +45,7 @@ jobs:
       - name: Install golangci-lint (Client)
         uses: golangci/golangci-lint-action@v3
         with:
-          working-directory: ./monitoring
+          working-directory: ./client
           version: v1.62.2
 
       - name: Run make lint in client
@@ -61,12 +61,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go (если Makefile его требует, например)
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
 
-      - name: Install golangci-lint (Client)
+      - name: Install golangci-lint (Monitoring)
         uses: golangci/golangci-lint-action@v3
         with:
           working-directory: ./monitoring

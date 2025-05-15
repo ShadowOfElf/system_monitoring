@@ -99,7 +99,6 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 				net[name] += value
 			}
 		}
-
 	}
 
 	if s.enable.Load {
