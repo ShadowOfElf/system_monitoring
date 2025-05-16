@@ -1,7 +1,5 @@
 [app]
-type="main"
 max_size=10
-period=100
 repeat_rate=1
 
 [logger]

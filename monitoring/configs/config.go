@@ -22,7 +22,6 @@ type Config struct {
 	Logger        LoggerConf
 	Enable        resources.CollectorEnable
 	MaxSize       int
-	Period        int
 	RepeatRateSec int
 }
 
@@ -34,7 +33,6 @@ func NewConfig(configFile string) *Config {
 	}
 
 	maxSize := viper.GetInt("app.max_size")
-	period := viper.GetInt("app.period")
 	repeatRate := viper.GetInt("app.repeat_rate")
 
 	logLevel := viper.GetString("logger.level")
@@ -67,7 +65,6 @@ func NewConfig(configFile string) *Config {
 		GRPC:          GRPCConf{Addr: addrGRPC},
 		Enable:        enable,
 		MaxSize:       maxSize,
-		Period:        period,
 		RepeatRateSec: repeatRate,
 	}
 }
