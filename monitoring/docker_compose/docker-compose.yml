@@ -11,6 +11,9 @@ services:
       - 50051:50051
     networks:
       - app-network
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
 
 networks:
       app-network:

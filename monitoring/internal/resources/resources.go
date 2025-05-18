@@ -17,9 +17,8 @@ type Statistic struct {
 }
 
 type TopTalker struct {
-	ID      int
 	Name    string
-	LoadNet float32
+	LoadNet int
 }
 
 type CollectorEnable struct {

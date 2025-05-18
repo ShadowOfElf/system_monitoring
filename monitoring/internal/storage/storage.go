@@ -60,7 +60,7 @@ func (s *Storage) GetElements() []resources.Snapshot {
 	return s.elements
 }
 
-func (s *Storage) GetStatistic(interval int) resources.Statistic {
+func (s *Storage) GetStatistic(interval int) resources.Statistic { //nolint
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	lenElements := len(s.elements)
@@ -77,6 +77,7 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 	var load, cpu float32
 	disk := make(map[string]float32, lenElements)
 	net := make(map[string]int64, lenElements)
+	topT := make(map[string]int, 3)
 
 	// если размеры будут очень большими вероятно стоит переделать на работу в параллельных горутинах
 	for i := lenElements - 1; i >= lenElements-repeat; i-- {
@@ -97,6 +98,12 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 		if s.enable.Net {
 			for name, value := range s.elements[i].Net {
 				net[name] += value
+			}
+		}
+
+		if s.enable.TopTalkers {
+			for _, talker := range s.elements[i].TopTalkers {
+				topT[talker.Name] += talker.LoadNet
 			}
 		}
 	}
@@ -124,12 +131,19 @@ func (s *Storage) GetStatistic(interval int) resources.Statistic {
 		}
 	}
 
+	resultTalker := make([]resources.TopTalker, 0, 3)
+	if s.enable.TopTalkers {
+		for name, load := range topT {
+			resultTalker = append(resultTalker, resources.TopTalker{Name: name, LoadNet: load / repeat})
+		}
+	}
+
 	stat := resources.Statistic{
 		Load:       load,
 		CPU:        cpu,
 		Disk:       disk,
 		Net:        net,
-		TopTalkers: []resources.TopTalker{{ID: 1, Name: "Test", LoadNet: 1111}},
+		TopTalkers: resultTalker,
 	}
 	return stat
 }

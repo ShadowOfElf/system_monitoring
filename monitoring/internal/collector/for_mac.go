@@ -29,10 +29,10 @@ func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceColle
 		app:         app,
 		cancel:      nil,
 		enable:      enable,
-		collectLoad: CollectTEMPFloat,
-		collectCPU:  CollectCPU,
-		collectDisk: CollectTEMPDisk,
-		collectNet:  CollectTEMPNet,
+		collectLoad: collectTEMPFloat,
+		collectCPU:  collectCPU,
+		collectDisk: collectTEMPDisk,
+		collectNet:  collectTEMPNet,
 	}
 }
 
@@ -109,19 +109,19 @@ func (c *SCollector) Collect() resources.Snapshot {
 	}
 }
 
-func CollectTEMPFloat() (float32, error) {
+func collectTEMPFloat() (float32, error) {
 	return -1, nil
 }
 
-func CollectTEMPNet() (map[string]int64, error) {
+func collectTEMPNet() (map[string]int64, error) {
 	return nil, nil
 }
 
-func CollectTEMPDisk() (map[string]float32, error) {
+func collectTEMPDisk() (map[string]float32, error) {
 	return nil, nil
 }
 
-func CollectCPU() (float32, error) {
+func collectCPU() (float32, error) {
 	cmd := exec.Command("bash", "-c", "top -l 1 | grep \"CPU usage\" | awk '{print $7}' | cut -d'%' -f1")
 	output, err := cmd.Output()
 	if err != nil {

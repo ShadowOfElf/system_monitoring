@@ -16,24 +16,26 @@ import (
 )
 
 type SCollector struct {
-	app         *app.App
-	cancel      context.CancelFunc
-	enable      resources.CollectorEnable
-	collectLoad func() (float32, error)
-	collectCPU  func() (float32, error)
-	collectDisk func() (map[string]float32, error)
-	collectNet  func() (map[string]int64, error)
+	app              *app.App
+	cancel           context.CancelFunc
+	enable           resources.CollectorEnable
+	collectLoad      func() (float32, error)
+	collectCPU       func() (float32, error)
+	collectDisk      func() (map[string]float32, error)
+	collectNet       func() (map[string]int64, error)
+	collectTopTalker func() ([]resources.TopTalker, error)
 }
 
 func NewCollector(app *app.App, enable resources.CollectorEnable) InterfaceCollector {
 	return &SCollector{
-		app:         app,
-		cancel:      nil,
-		enable:      enable,
-		collectLoad: CollectLoad,
-		collectCPU:  CollectCPU,
-		collectDisk: CollectDisk,
-		collectNet:  collectTCPStates,
+		app:              app,
+		cancel:           nil,
+		enable:           enable,
+		collectLoad:      collectLoad,
+		collectCPU:       collectCPU,
+		collectDisk:      collectDisk,
+		collectNet:       collectTCPStates,
+		collectTopTalker: collectTopTalkers,
 	}
 }
 
@@ -73,6 +75,7 @@ func (c *SCollector) Collect() resources.Snapshot {
 	var cpu float32 = -1
 	var disk map[string]float32
 	var net map[string]int64
+	topT := make([]resources.TopTalker, 3)
 
 	if c.enable.Load {
 		load, err = c.collectLoad()
@@ -102,15 +105,23 @@ func (c *SCollector) Collect() resources.Snapshot {
 		c.app.Logger.Error("Ошибка в получении Net:" + err.Error())
 	}
 
+	if c.enable.TopTalkers {
+		topT, err = c.collectTopTalker()
+	}
+	if err != nil {
+		c.app.Logger.Error("Ошибка в получении TopTalker:" + err.Error())
+	}
+
 	return resources.Snapshot{
-		Load: load,
-		CPU:  cpu,
-		Disk: disk,
-		Net:  net,
+		Load:       load,
+		CPU:        cpu,
+		Disk:       disk,
+		Net:        net,
+		TopTalkers: topT,
 	}
 }
 
-func CollectLoad() (float32, error) {
+func collectLoad() (float32, error) {
 	//
 	cmd := exec.Command("bash", "-c", "cat /proc/loadavg | awk '{print $1}'")
 	output, err := cmd.Output()
@@ -127,7 +138,7 @@ func CollectLoad() (float32, error) {
 	return float32(result), nil
 }
 
-func CollectCPU() (float32, error) {
+func collectCPU() (float32, error) {
 	cmd := exec.Command("bash", "-c", "top -b -n 1 | grep \"%Cpu(s)\" | cut -d',' -f4 | awk '{print $1}'")
 	output, err := cmd.Output()
 	if err != nil {
@@ -149,7 +160,7 @@ func CollectCPU() (float32, error) {
 	return float32(roundedLoad), nil
 }
 
-func CollectDisk() (map[string]float32, error) {
+func collectDisk() (map[string]float32, error) {
 	cmd := exec.Command("bash", "-c", "df -hT")
 	output, err := cmd.Output()
 	if err != nil {
@@ -194,4 +205,27 @@ func collectTCPStates() (map[string]int64, error) {
 	}
 
 	return states, nil
+}
+
+func collectTopTalkers() ([]resources.TopTalker, error) {
+	result := make([]resources.TopTalker, 0, 3)
+	cmd := exec.Command("bash", "-c", "ss -s | tail -n +5 | awk '{print $1,$2}'")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+
+	for _, line := range lines {
+		parts := strings.Fields(line)
+		if len(parts) < 2 || parts[1] == "0" {
+			continue
+		}
+		count, _ := strconv.Atoi(parts[1])
+		result = append(result, resources.TopTalker{Name: parts[0], LoadNet: count})
+	}
+
+	return result, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/ShadowOfElf/system_monitoring/configs"
 	grpcclient "github.com/ShadowOfElf/system_monitoring/internal/client/grpc"
 	"github.com/ShadowOfElf/system_monitoring/internal/logger"
+	pb "github.com/ShadowOfElf/system_monitoring/pkg"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -68,17 +69,18 @@ func main() {
 	logg.Info("Start Client...")
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Load", "CPU", "Disk", "Net"})
+	table.SetHeader([]string{"Load", "CPU", "Disk", "Net", "TopTalker"})
 	table.SetAutoFormatHeaders(false)
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 
 	var lastLoad, lastCPU float32
 	var lastDisk map[string]float32
 	var lastNet map[string]int64
+	topTalkers := make([]*pb.TopTalker, 0, 3)
 
-	updateTable := func(load, cpu float32, disk map[string]float32, net map[string]int64) {
-		lastLoad, lastCPU, lastDisk, lastNet = load, cpu, disk, net
+	updateTable := func(load, cpu float32, disk map[string]float32, net map[string]int64, topT []*pb.TopTalker) {
+		lastLoad, lastCPU, lastDisk, lastNet, topTalkers = load, cpu, disk, net, topT
 
 		select {
 		case <-ctx.Done():
@@ -98,11 +100,20 @@ func main() {
 				return fmt.Sprintf("%v", s)
 			})
 
+			topTMap := make(map[string]int64, 3)
+			for _, talker := range topTalkers {
+				topTMap[talker.Name] = talker.Load
+			}
+			topTStr := mapToStr(topTMap, func(s int64) string {
+				return fmt.Sprintf("%v", s)
+			})
+
 			table.Append([]string{
 				loadStr,
 				fmt.Sprintf("%.2f", lastCPU),
 				diskStr,
 				netStr,
+				topTStr,
 			})
 			table.Render()
 		}
@@ -124,7 +135,13 @@ func main() {
 				logg.Info("Stop Client...")
 				return
 			default:
-				updateTable(stat.Statistic.Load, stat.Statistic.Cpu, stat.Statistic.Disk, stat.Statistic.Net)
+				updateTable(
+					stat.Statistic.Load,
+					stat.Statistic.Cpu,
+					stat.Statistic.Disk,
+					stat.Statistic.Net,
+					stat.Statistic.TopTalker,
+				)
 			}
 		}
 	}

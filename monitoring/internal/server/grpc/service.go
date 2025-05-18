@@ -37,9 +37,8 @@ func statToProtoStat(statCh chan resources.Statistic) *pb.StatisticResponse {
 
 	for _, talker := range stat.TopTalkers {
 		protoTalker := pb.TopTalker{
-			ID:   int64(talker.ID),
 			Name: talker.Name,
-			Load: talker.LoadNet,
+			Load: int64(talker.LoadNet),
 		}
 		talkers = append(talkers, &protoTalker)
 	}
