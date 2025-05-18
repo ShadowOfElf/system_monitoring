@@ -11,6 +11,9 @@ build:
 build-linux:
 	GOOS=linux GOARCH=amd64 go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd
 
+build-win:
+	go build -v -o $(BIN).exe ./cmd
+
 run:
 	$(BIN) --config ./configs/test.toml
 

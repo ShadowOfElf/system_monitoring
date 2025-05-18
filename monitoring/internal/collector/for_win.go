@@ -122,7 +122,7 @@ func collectTEMPDisk() (map[string]float32, error) {
 }
 
 func collectCPU() (float32, error) {
-	cmd := exec.Command("cmd", "/C", "typeperf \"\\Processor(_Total)\\% Processor Time\" -sc 1 | findstr /v \"(PDH-\"")
+	cmd := exec.Command("powershell", "-Command", "(Get-WmiObject Win32_Processor).LoadPercentage")
 	output, err := cmd.Output()
 	if err != nil {
 		return 0, err
