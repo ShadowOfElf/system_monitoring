@@ -15,7 +15,7 @@ build-win:
 	go build -v -o $(BIN).exe ./cmd
 
 run:
-	$(BIN) --config ./configs/test.toml
+	$(BIN) --config=./bin/test.toml
 
 build-img:
 	docker compose -f ./docker_compose/docker-compose.yml build
