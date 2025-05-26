@@ -34,3 +34,6 @@ generate:
 test:
 	go test -v -race ./internal/...
 
+integration-test:
+	docker build -t grpc-test -f ./docker_compose/DOCKERFILE .
+	docker run --rm grpc-test; EXIT_CODE=$$?; echo "Exit code: $$EXIT_CODE"; exit $$EXIT_CODE
